@@ -45,7 +45,7 @@ class App extends React.Component<AppProps, AppStates> {
 				</header>
 				<main className="App-main">
 					<div className="App-CardContainer">
-						<SoundCardContainer isPlayingMasterButtonOn={this.state.isPlayingMaster}/>
+						<SoundCardContainer isPlayingMaster={this.state.isPlayingMaster}/>
 					</div>
 				</main>
 			</div>

@@ -4,57 +4,98 @@
 
 import React from 'react';
 
-import { Slider, CardContent, CardActions, Typography, Grid, Card, CardHeader, FormControlLabel, Switch, IconButton } from '@material-ui/core'
+import {
+	Slider,
+	CardContent,
+	CardActions,
+	Typography,
+	Grid,
+	Card,
+	CardHeader,
+	FormControlLabel,
+	Switch,
+	IconButton
+} from '@material-ui/core'
 import { PlayArrow, VolumeDown, VolumeUp } from '@material-ui/icons';
 import PauseIcon from '@material-ui/icons/Pause';
+import { SoundHandler } from './sound-handler';
 
 export interface SoundCardProps {
 	cardName: string;
 	cardIcon: React.ElementType;
-	secondaryText: string;
-	soundCardPath: string;
-	masterPlayIsOn: boolean;
+	cardSecondaryText: string;
+	cardSoundPath: string;
+	isMasterPlayButtonOn: boolean;
+	cardHertzValue: number;
 }
 
 export interface SoundCardState {
-	soundVolume: number;
+	cardSoundVolume: number;
 	isHidden: boolean;
-	isPlaying: boolean;
-	isToned: boolean;
+	isCardPlayButtonIsOn: boolean;
+	isCardToneIsOn: boolean;
 }
 
 class SoundCard extends React.Component<SoundCardProps, SoundCardState> {
+	private sound: SoundHandler = new SoundHandler(this.props.cardSoundPath);
+
 	constructor(props: SoundCardProps) {
 		super(props);
 		this.state = {
-			soundVolume: 30,
+			cardSoundVolume: 50,
 			isHidden: false,
-			isPlaying: false,
-			isToned: false,
+			isCardPlayButtonIsOn: false,
+			isCardToneIsOn: false,
 		};
 	}
 
-	handleToneClick = () => {
+	componentDidUpdate() {
+		this.playSound();
+		this.playTonedSound();
+	}
+
+	handleToneSwitch = () => {
 		this.setState({
-			isToned: !this.state.isToned,
+			isCardToneIsOn: !this.state.isCardToneIsOn,
 		});
 	}
 
-	handlePlayClick = () => {
+	handlePlayButtonClick = () => {
 		this.setState({
-			isPlaying: !this.state.isPlaying,
+			isCardPlayButtonIsOn: !this.state.isCardPlayButtonIsOn,
 		});
 	}
 
 	handleSliderChange = (event: any, newValue: number | number[]) => {
 		this.setState({
-			soundVolume: newValue as number,
+			cardSoundVolume: newValue as number,
 		});
+		//The gainNode volume goes from 0 to 2, but my Slider's values are from 0 to 100.
+		// This way the scaling and the value is good as well.
+		this.sound.setVolume(newValue as number / 50);
+	}
+
+	playSound = () => {
+		if (this.state.isCardPlayButtonIsOn && this.props.isMasterPlayButtonOn) {
+			this.sound.startSound();
+		}
+		else {
+			this.sound.stopSound();
+		}
+	}
+
+	playTonedSound = () => {
+		if (this.state.isCardToneIsOn) {
+			this.sound.activateTone(this.props.cardHertzValue);
+		}
+		else {
+			this.sound.deactivateTone();
+		}
 	}
 
 	render() {
-		const individualPlayButton = this.state.isPlaying ? <PauseIcon/> : <PlayArrow/>;
-		const disablePlayButton = !this.props.masterPlayIsOn;
+		const individualPlayButton = this.state.isCardPlayButtonIsOn ? <PauseIcon/> : <PlayArrow/>;
+		const disablePlayButton = !this.props.isMasterPlayButtonOn;
 		return (
 			<Card className="soundCard">
 				<CardHeader
@@ -62,9 +103,8 @@ class SoundCard extends React.Component<SoundCardProps, SoundCardState> {
 						<FormControlLabel
 							control={
 								<Switch
-									checked={this.state.isToned}
-									onChange={this.handleToneClick}
-									name="isToneIsOn"
+									checked={this.state.isCardToneIsOn}
+									onChange={this.handleToneSwitch}
 									color="primary"
 								/>
 							}
@@ -76,14 +116,14 @@ class SoundCard extends React.Component<SoundCardProps, SoundCardState> {
 				/>
 				<IconButton
 					color='primary'
-					onClick={this.handlePlayClick}
+					onClick={this.handlePlayButtonClick}
 					disabled={disablePlayButton}
 				>
 					{individualPlayButton}
 				</IconButton>
 				<CardContent>
 					<Typography variant="body1" color="textSecondary">
-						{this.props.secondaryText}
+						{this.props.cardSecondaryText}
 					</Typography>
 					<Typography id="continuous-slider">
 						Volume
@@ -95,9 +135,12 @@ class SoundCard extends React.Component<SoundCardProps, SoundCardState> {
 							</Grid>
 							<Grid item xs>
 								<Slider
-									value={this.state.soundVolume}
+									value={this.state.cardSoundVolume as number}
 									onChange={this.handleSliderChange}
 									valueLabelDisplay="auto"
+									min={0}
+									max={100}
+									step={1}
 								/>
 							</Grid>
 							<Grid item>

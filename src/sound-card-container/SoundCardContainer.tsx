@@ -6,7 +6,7 @@ import SoundCard from './soundcard/SoundCard';
 import { SoundConfiguration, sounds } from '../configuration/sound-configuration';
 
 export interface CardContainerProps {
-	isPlayingMasterButtonOn: boolean;
+	isPlayingMaster: boolean;
 }
 
 export interface CardContainerState {
@@ -14,15 +14,16 @@ export interface CardContainerState {
 
 class SoundCardContainer extends React.Component<CardContainerProps, CardContainerState> {
 
-	createCard(id: number, title: string, icon: React.ElementType, secondaryText: string, path: string, isSoundOn: boolean) {
+	createCard(id: number, title: string, icon: React.ElementType, secondaryText: string, path: string, isSoundOn: boolean, hertzNumber: number) {
 		return (
 			<div className="card" key={id}>
 				<SoundCard
 					cardName={title}
 					cardIcon={icon}
-					secondaryText={secondaryText}
-					soundCardPath={path}
-					masterPlayIsOn={isSoundOn}
+					cardSecondaryText={secondaryText}
+					cardSoundPath={path}
+					isMasterPlayButtonOn={isSoundOn}
+					cardHertzValue={hertzNumber}
 				/>
 			</div>
 		)
@@ -33,7 +34,7 @@ class SoundCardContainer extends React.Component<CardContainerProps, CardContain
 			<div>
 				{sounds.map((sound : SoundConfiguration) => {
 					return this.createCard(sound.id, sound.title, sound.icon, sound.secondaryText, sound.path,
-						this.props.isPlayingMasterButtonOn);
+						this.props.isPlayingMaster, sound.hertzNumber);
 				})}
 			</div>
 		);
