@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP&family=Open+Sans+Condensed:wght@300&family=Open+Sans:ital,wght@1,400&family=Poppins&display=swap');
+
+.App {
+	background-image: url('/images/background.jpeg');
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-attachment: fixed;
+	background-size: cover;
+
+	.Header {
+		padding: 10px;
+		color: white;
+	}
+}
+
+//TODO: Background height

@@ -1,8 +1,10 @@
 import React from 'react';
 import SoundCardContainer from './sound-card-container/SoundCardContainer';
-import { Button, Typography } from '@material-ui/core';
+import { Typography, ThemeProvider, IconButton } from '@material-ui/core';
 import { PlayArrow } from '@material-ui/icons';
 import PauseIcon from '@material-ui/icons/Pause';
+import './App.scss';
+import { theme } from './configuration/theme-configuration';
 
 export interface AppProps {
 }
@@ -27,28 +29,31 @@ class App extends React.Component<AppProps, AppStates> {
 
 	render() {
 		const buttonIcon = this.state.isPlayingMaster ? <PauseIcon/> : <PlayArrow/>;
-		const buttonText = this.state.isPlayingMaster ? 'Pause' : 'Play';
 		return (
-			<div className="App">
-				<header className="App-header">
-					<Typography variant="h3" align="center">
-						Nature's Whisper
-						<div className="MasterButtons">
-							<Button
-								startIcon={buttonIcon}
-								onClick={() => this.handlePlayButton()}
-							>
-								{buttonText}
-							</Button>
+			<ThemeProvider theme={theme}>
+				<div className='App'>
+					<header className='Header'>
+						<Typography variant='h1' align='center'>
+							Nature's Whisper
+						</Typography>
+						<Typography variant='h4' align='center'>
+							Ambient sounds to concentrate and to relax
+						</Typography>
+						<Typography variant='h2' align='center'>
+							<IconButton
+								color='inherit'
+								onClick={() => this.handlePlayButton()}>
+								{buttonIcon}
+							</IconButton>
+						</Typography>
+					</header>
+					<main>
+						<div>
+							<SoundCardContainer isPlayingMaster={this.state.isPlayingMaster}/>
 						</div>
-					</Typography>
-				</header>
-				<main className="App-main">
-					<div className="App-CardContainer">
-						<SoundCardContainer isPlayingMaster={this.state.isPlayingMaster}/>
-					</div>
-				</main>
-			</div>
+					</main>
+				</div>
+			</ThemeProvider>
 		);
 	}
 }

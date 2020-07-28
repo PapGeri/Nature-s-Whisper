@@ -1,7 +1,3 @@
-/*
- * Author : AdNovum Informatik AG
- */
-
 import React from 'react';
 
 import {
@@ -11,19 +7,17 @@ import {
 	Typography,
 	Grid,
 	Card,
-	CardHeader,
 	FormControlLabel,
 	Switch,
 	IconButton
 } from '@material-ui/core'
 import { PlayArrow, VolumeDown, VolumeUp } from '@material-ui/icons';
 import PauseIcon from '@material-ui/icons/Pause';
-import { SoundHandler } from './sound-handler';
+import { SoundHandler } from '../../sound-handler';
 
 export interface SoundCardProps {
 	cardName: string;
 	cardIcon: React.ElementType;
-	cardSecondaryText: string;
 	cardSoundPath: string;
 	isMasterPlayButtonOn: boolean;
 	cardHertzValue: number;
@@ -70,7 +64,7 @@ class SoundCard extends React.Component<SoundCardProps, SoundCardState> {
 		this.setState({
 			cardSoundVolume: newValue as number,
 		});
-		//The gainNode volume goes from 0 to 2, but my Slider's values are from 0 to 100.
+		//The gainNode volume goes from 0 to 2, but my Slider values are from 0 to 100.
 		// This way the scaling and the value is good as well.
 		this.sound.setVolume(newValue as number / 50);
 	}
@@ -97,39 +91,48 @@ class SoundCard extends React.Component<SoundCardProps, SoundCardState> {
 		const individualPlayButton = this.state.isCardPlayButtonIsOn ? <PauseIcon/> : <PlayArrow/>;
 		const disablePlayButton = !this.props.isMasterPlayButtonOn;
 		return (
-			<Card className="soundCard">
-				<CardHeader
-					action={
-						<FormControlLabel
-							control={
-								<Switch
-									checked={this.state.isCardToneIsOn}
-									onChange={this.handleToneSwitch}
-									color="primary"
-								/>
-							}
-							label="Tone"
-						/>
-					}
-					title={this.props.cardName}
-					avatar={<this.props.cardIcon/>}
-				/>
-				<IconButton
-					color='primary'
-					onClick={this.handlePlayButtonClick}
-					disabled={disablePlayButton}
-				>
-					{individualPlayButton}
-				</IconButton>
+			<Card>
 				<CardContent>
-					<Typography variant="body1" color="textSecondary">
-						{this.props.cardSecondaryText}
-					</Typography>
-					<Typography id="continuous-slider">
+					<Grid container spacing={2} alignItems='center' justify='center'>
+						<Grid item>
+							<Typography variant='h4'>
+								{<this.props.cardIcon/>}
+							</Typography>
+						</Grid>
+						<Grid item xs>
+							<Typography variant='h6'>
+								{this.props.cardName}
+							</Typography>
+						</Grid>
+						<Grid item xs>
+							<IconButton
+								color='primary'
+								size='small'
+								onClick={this.handlePlayButtonClick}
+								disabled={disablePlayButton}
+							>
+								{individualPlayButton}
+							</IconButton>
+						</Grid>
+						<Grid item>
+							<FormControlLabel
+								control={
+									<Switch
+										checked={this.state.isCardToneIsOn}
+										onChange={this.handleToneSwitch}
+										color='primary'
+										size='small'
+									/>
+								}
+								label='Tone'
+							/>
+						</Grid>
+					</Grid>
+					<Typography>
 						Volume
 					</Typography>
 					<CardActions>
-						<Grid container spacing={2}>
+						<Grid container spacing={2} alignItems='center' justify='center'>
 							<Grid item>
 								<VolumeDown/>
 							</Grid>
@@ -137,7 +140,7 @@ class SoundCard extends React.Component<SoundCardProps, SoundCardState> {
 								<Slider
 									value={this.state.cardSoundVolume as number}
 									onChange={this.handleSliderChange}
-									valueLabelDisplay="auto"
+									valueLabelDisplay='auto'
 									min={0}
 									max={100}
 									step={1}
