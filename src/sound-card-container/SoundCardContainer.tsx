@@ -1,11 +1,12 @@
 import React from 'react';
 import SoundCard from './sound-card/SoundCard';
 import { SoundConfiguration, sounds } from '../configuration/sound-configuration';
-import { Grid } from '@material-ui/core';
+import { Fade, Grid } from '@material-ui/core';
 import './SoundCardContainer.scss';
 
 export interface CardContainerProps {
 	isPlayingMaster: boolean;
+	cardsMap: Map<number, boolean>;
 }
 
 export interface CardContainerState {
@@ -21,17 +22,24 @@ class SoundCardContainer extends React.Component<CardContainerProps, CardContain
 		isSoundOn: boolean,
 		hertzNumber: number
 	) {
+
 		return (
 			<div key={id} className='Card'>
-				<Grid item xs>
-					<SoundCard
-						cardName={title}
-						cardIcon={icon}
-						cardSoundPath={path}
-						isMasterPlayButtonOn={isSoundOn}
-						cardHertzValue={hertzNumber}
-					/>
-				</Grid>
+				<Fade
+					in={this.props.cardsMap.get(id)}
+					unmountOnExit={true}
+				>
+					<Grid item xs>
+						<SoundCard
+							cardName={title}
+							isVisible={this.props.cardsMap.get(id) as boolean}
+							cardIcon={icon}
+							cardSoundPath={path}
+							isMasterPlayButtonOn={isSoundOn}
+							cardHertzValue={hertzNumber}
+						/>
+					</Grid>
+				</Fade>
 			</div>
 		)
 	}

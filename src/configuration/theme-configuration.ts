@@ -4,6 +4,9 @@ import { green } from '@material-ui/core/colors';
 export const theme = createMuiTheme({
 	palette: {
 		primary: green,
+		secondary: {
+			main: '#F2F3F5',
+		}
 	},
 	typography: {
 		fontFamily: 'Noto Sans JP',

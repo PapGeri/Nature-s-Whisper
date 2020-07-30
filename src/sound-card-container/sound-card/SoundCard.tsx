@@ -17,6 +17,7 @@ import { SoundHandler } from '../../sound-handler';
 
 export interface SoundCardProps {
 	cardName: string;
+	isVisible: boolean;
 	cardIcon: React.ElementType;
 	cardSoundPath: string;
 	isMasterPlayButtonOn: boolean;
@@ -25,7 +26,6 @@ export interface SoundCardProps {
 
 export interface SoundCardState {
 	cardSoundVolume: number;
-	isHidden: boolean;
 	isCardPlayButtonIsOn: boolean;
 	isCardToneIsOn: boolean;
 }
@@ -37,7 +37,6 @@ class SoundCard extends React.Component<SoundCardProps, SoundCardState> {
 		super(props);
 		this.state = {
 			cardSoundVolume: 50,
-			isHidden: false,
 			isCardPlayButtonIsOn: false,
 			isCardToneIsOn: false,
 		};
@@ -70,7 +69,7 @@ class SoundCard extends React.Component<SoundCardProps, SoundCardState> {
 	}
 
 	playSound = () => {
-		if (this.state.isCardPlayButtonIsOn && this.props.isMasterPlayButtonOn) {
+		if (this.state.isCardPlayButtonIsOn && this.props.isMasterPlayButtonOn && this.props.isVisible) {
 			this.sound.startSound();
 		}
 		else {
