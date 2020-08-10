@@ -2,14 +2,15 @@ import React, { ChangeEvent } from 'react';
 import { Button, Menu, MenuItem, Checkbox, FormControlLabel } from '@material-ui/core';
 import { SoundConfiguration, sounds } from '../configuration/sound-configuration';
 import MenuIcon from '@material-ui/icons/Menu';
+import { StorageState } from '../App';
 
 export interface CardHiderProps {
-	cardsMap: Map<number, boolean>;
-	onChange: (id: number, isVisible: boolean) => void;
+	cardsMap: Map<number, StorageState>,
+	onChange: (id: number, isVisible: boolean) => void,
 }
 
 export interface CardHiderState {
-	anchorEl: null | HTMLElement;
+	anchorEl: null | HTMLElement,
 }
 
 class SoundCardHider extends React.Component<CardHiderProps, CardHiderState> {
@@ -43,7 +44,7 @@ class SoundCardHider extends React.Component<CardHiderProps, CardHiderState> {
 							onChange={(event: ChangeEvent<HTMLInputElement>) => {
 								this.props.onChange(id, event.target.checked);
 							}}
-							checked={this.props.cardsMap.get(id)}
+							checked={(this.props.cardsMap.get(id) as StorageState).isVisible}
 						/>
 					}
 					label={title}
