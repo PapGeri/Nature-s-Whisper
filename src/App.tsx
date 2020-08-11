@@ -7,6 +7,10 @@ import { Typography, ThemeProvider, IconButton } from '@material-ui/core';
 import { PlayArrow } from '@material-ui/icons';
 import PauseIcon from '@material-ui/icons/Pause';
 import './App.scss';
+import { myFirebase } from './configuration/firebase-config';
+import { User } from 'firebase';
+import SignInScreen from './SignInScreen';
+
 
 export interface AppProps {
 }
@@ -14,7 +18,8 @@ export interface AppProps {
 export interface AppStates {
 	isPlayingMaster: boolean,
 	cards: Map<number, StorageState>,
-	snackBarOpen : boolean,
+	snackBarOpen: boolean,
+	userSignedIn: boolean,
 }
 
 export interface StorageState {
@@ -32,18 +37,32 @@ class App extends React.Component<AppProps, AppStates> {
 			isPlayingMaster: false,
 			cards: cardsMap,
 			snackBarOpen: false,
-		}
+			userSignedIn: false,
+		};
+	}
+
+	componentDidMount() {
+		myFirebase.auth().onAuthStateChanged((user: User | null) => {
+			this.setState({
+				//if the object is null its false, if its an object its true
+				userSignedIn: !!user,
+			});
+		})
+	}
+
+	handleLogOut = () => {
+		myFirebase.auth().signOut();
 	}
 
 	initCardMap = () => {
 		let map = new Map<number, StorageState>();
-		if (localStorage.length === 0) {
+		if (localStorage.getItem('StorageState') === null) {
 			sounds.forEach((sound: SoundConfiguration) => {
 				map.set(sound.id, { volume: 50, isVisible: true, isPlaying: false, isToned: false });
 			});
 		}
 		else {
-			const value = JSON.parse(localStorage.getItem('1') as string);
+			const value = JSON.parse(localStorage.getItem('StorageState') as string);
 			value.forEach((config: any[]) => {
 				map.set(config[0] as number, {
 					volume: config[1].volume,
@@ -71,7 +90,7 @@ class App extends React.Component<AppProps, AppStates> {
 	}
 
 	handleLocalStorageSave = () => {
-		localStorage.setItem('1', JSON.stringify(Array.from(this.state.cards)));
+		localStorage.setItem('StorageState', JSON.stringify(Array.from(this.state.cards)));
 		this.setState({
 			snackBarOpen: true,
 		});
@@ -124,47 +143,63 @@ class App extends React.Component<AppProps, AppStates> {
 		});
 	}
 
+	handleUserSignIn = () => {
+		myFirebase.auth().onAuthStateChanged((user: User | null) => {
+			this.setState({
+				userSignedIn: !!user,
+			});
+		})
+	}
+
 	render() {
 		const buttonIcon = this.state.isPlayingMaster ? <PauseIcon/> : <PlayArrow/>;
+		if (this.state.userSignedIn) {
+			return (
+				<ThemeProvider theme={theme}>
+					<div className='App'>
+						<HeaderBar
+							cardsMap={this.state.cards}
+							onChange={this.setCardMap}
+							onSaveButtonPressed={this.handleLocalStorageSave}
+							onSignOutButtonPressed={this.handleLogOut}
+							open={this.state.snackBarOpen}
+							close={this.handleSnackbarClose}
+						/>
+						<header className='Header'>
+							<Typography variant='h1' align='center'>
+								Nature's Whisper
+							</Typography>
+							<Typography variant='h4' align='center'>
+								Ambient sounds to concentrate and to relax
+							</Typography>
+							<Typography variant='h2' align='center'>
+								<IconButton
+									className='MasterPlayButton'
+									color='inherit'
+									onClick={() => this.handlePlayButton()}>
+									{buttonIcon}
+								</IconButton>
+							</Typography>
+						</header>
+						<main>
+							<div>
+								<SoundCardContainer
+									cardsMap={this.state.cards}
+									onPlayButtonChange={this.handleIndividualSoundPlayButtonClick}
+									onVolumeChange={this.handleIndividualSoundVolume}
+									onToneSwitchChange={this.handleIndividualSoundToneSwitch}
+									isPlayingMaster={this.state.isPlayingMaster}
+								/>
+							</div>
+						</main>
+					</div>
+				</ThemeProvider>
+			);
+		}
 		return (
-			<ThemeProvider theme={theme}>
-				<div className='App'>
-					<HeaderBar
-						cardsMap={this.state.cards}
-						onChange={this.setCardMap}
-						onSaveButtonPressed={this.handleLocalStorageSave}
-						open={this.state.snackBarOpen}
-						close={this.handleSnackbarClose}
-					/>
-					<header className='Header'>
-						<Typography variant='h1' align='center'>
-							Nature's Whisper
-						</Typography>
-						<Typography variant='h4' align='center'>
-							Ambient sounds to concentrate and to relax
-						</Typography>
-						<Typography variant='h2' align='center'>
-							<IconButton
-								className='MasterPlayButton'
-								color='inherit'
-								onClick={() => this.handlePlayButton()}>
-								{buttonIcon}
-							</IconButton>
-						</Typography>
-					</header>
-					<main>
-						<div>
-							<SoundCardContainer
-								cardsMap={this.state.cards}
-								onPlayButtonChange={this.handleIndividualSoundPlayButtonClick}
-								onVolumeChange={this.handleIndividualSoundVolume}
-								onToneSwitchChange={this.handleIndividualSoundToneSwitch}
-								isPlayingMaster={this.state.isPlayingMaster}
-							/>
-						</div>
-					</main>
-				</div>
-			</ThemeProvider>
+			<div className='auth-container'>
+				<SignInScreen isSignedIn={this.state.userSignedIn} changeSignInHandler={this.handleUserSignIn} />
+			</div>
 		);
 	}
 }

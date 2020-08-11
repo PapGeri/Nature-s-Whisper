@@ -10,6 +10,7 @@ export interface HeaderBarProps {
 	cardsMap: Map<number, StorageState>,
 	onChange: (id: number, isVisible: boolean) => void,
 	onSaveButtonPressed: () => void,
+	onSignOutButtonPressed: () => void,
 	open: boolean,
 	close: () => void,
 }
@@ -28,11 +29,11 @@ class HeaderBar extends React.Component<HeaderBarProps, HeaderBarState> {
 							cardsMap={this.props.cardsMap}
 							onChange={this.props.onChange}/>
 					</div>
-					<Button color='inherit'>
-						Log In
-					</Button>
-					<Button color='inherit'>
-						Sign Up
+					<Button
+						onClick={this.props.onSignOutButtonPressed}
+						color='inherit'
+					>
+						Log Out
 					</Button>
 					<IconButton
 						color='secondary'

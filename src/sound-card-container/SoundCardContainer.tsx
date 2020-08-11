@@ -26,21 +26,22 @@ class SoundCardContainer extends React.Component<CardContainerProps, CardContain
 		isSoundOn: boolean,
 		hertzNumber: number
 	) {
-
+		const currentCard = this.props.cardsMap.get(id) as StorageState;
 		return (
+
 			<div key={id} className='Card'>
 				<Fade
-					in={(this.props.cardsMap.get(id) as StorageState).isVisible}
+					in={currentCard.isVisible}
 					unmountOnExit={true}
 				>
 					<Grid item xs>
 						<SoundCard
 							id={id}
 							cardName={title}
-							soundVolume={(this.props.cardsMap.get(id) as StorageState).volume}
-							isCardPlayButtonIsOn={(this.props.cardsMap.get(id) as StorageState).isPlaying}
-							isCardToneIsOn={(this.props.cardsMap.get(id) as StorageState).isToned}
-							isVisible={(this.props.cardsMap.get(id) as StorageState).isVisible}
+							soundVolume={currentCard.volume}
+							isCardPlayButtonIsOn={currentCard.isPlaying}
+							isCardToneIsOn={currentCard.isToned}
+							isVisible={currentCard.isVisible}
 							cardIcon={icon}
 							cardSoundPath={path}
 							isMasterPlayButtonOn={isSoundOn}
