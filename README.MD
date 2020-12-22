@@ -24,6 +24,19 @@ To start the application on http://localhost:3000/ run:
 $ npm start
 ```
 
+## Docker
+
+As of 2021 it is possible to run the application via Docker.
+If you have Docker installed on your local machine, simply run:
+
+```sh
+$ npm run docker:dev
+```
+
+This will start the application on port:3001 on your localhost. As you can see this is the development environment, if you want
+ the production environment just change the "dev" to "prod" in the previous script. (In that case the app is gonna be on port
+ :8877)
+
 ## Usage
 
 The first screen of the application is the default screen where one can play around and try out all the functions without
@@ -58,6 +71,16 @@ Without saving, the default configuration will be applied to the application whe
 
 For this task I used the Firebase Realtime Database which is a cloud-hosted database. Every user has its own configuration
  which will be loaded as soon as the user logs in.
+ 
+## Docker solution
+
+For future tasks I added 2 Dockerfiles with 2 compose options. One of them is for development, that's the normal Dockerfile
+where I just copy the application to the container, install every dependency and start up the application.
+ 
+ 
+The other one is for production, which might come in handy for the CI pipeline in the future. This is the Dockerfile.prod
+where besides of copying the app to the container, I build my app there. After that I copy the built application to the nginx
+web server to host my application.
 
 ## Built with
 

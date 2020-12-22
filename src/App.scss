@@ -2,10 +2,11 @@
 
 .App {
 	background-image: url('/images/background.jpeg');
+	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center center;
 	background-attachment: fixed;
-	background-size: cover;
+	min-height: 100vh;
 	color: white;
 
 	.Header {
@@ -17,5 +18,3 @@
 .auth-container {
 	margin: 30px;
 }
-
-//TODO: Background height

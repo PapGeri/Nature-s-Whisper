@@ -35,7 +35,7 @@ class HeaderBar extends React.Component<HeaderBarProps, HeaderBarState> {
 					</div>
 					{!!currentUserAvailable ?
 						<Typography>
-							{(currentUserAvailable as User).displayName}
+							{'Welcome ' + (currentUserAvailable as User).displayName}
 						</Typography>
 						:
 						<Button
