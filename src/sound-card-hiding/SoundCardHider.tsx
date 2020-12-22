@@ -60,7 +60,8 @@ class SoundCardHider extends React.Component<CardHiderProps, CardHiderState> {
 					onClick={this.handleClick}
 					color='inherit'
 				>
-					<MenuIcon/>Hide Cards
+					<MenuIcon/>
+						Hide
 				</Button>
 				<Menu
 					anchorEl={this.state.anchorEl}
