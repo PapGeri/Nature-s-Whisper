@@ -23,7 +23,11 @@ export class SoundHandler {
 		if (this.context.state === 'suspended') {
 			this.context.resume();
 		}
-		this.audio.play();
+		var promise = this.audio.play();
+		if (promise) {
+			//Older browsers may not return a promise, according to the MDN website
+			promise.catch(function (error) { console.error(error); });
+		}
 	}
 
 	stopSound() {
