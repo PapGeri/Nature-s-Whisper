@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/Nature-s-Whisper/static/css/main.ac241401.css",
+    "main.js": "/Nature-s-Whisper/static/js/main.ae7893da.js",
+    "static/media/ocean-waves.wav": "/Nature-s-Whisper/static/media/ocean-waves.624e99e728dbb3a52d83.wav",
+    "static/media/background.jpeg": "/Nature-s-Whisper/static/media/background.766dd2278db622ab2bc7.jpeg",
+    "static/media/fireplace.wav": "/Nature-s-Whisper/static/media/fireplace.d606063d7e41610740a5.wav",
+    "static/media/rain.wav": "/Nature-s-Whisper/static/media/rain.0bab1d114fde41e31786.wav",
+    "static/media/wind.wav": "/Nature-s-Whisper/static/media/wind.34f0bdd9388aa8fc6285.wav",
+    "static/media/bird.wav": "/Nature-s-Whisper/static/media/bird.aeb000889c1fb9173b18.wav",
+    "static/media/snow.wav": "/Nature-s-Whisper/static/media/snow.24bda9d6641f15ef863c.wav",
+    "static/media/waterfall.wav": "/Nature-s-Whisper/static/media/waterfall.fc6119bbef06dbbd45aa.wav",
+    "static/media/cricket.wav": "/Nature-s-Whisper/static/media/cricket.e272bc276464010d2f9d.wav",
+    "index.html": "/Nature-s-Whisper/index.html",
+    "main.ac241401.css.map": "/Nature-s-Whisper/static/css/main.ac241401.css.map",
+    "main.ae7893da.js.map": "/Nature-s-Whisper/static/js/main.ae7893da.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ac241401.css",
+    "static/js/main.ae7893da.js"
+  ]
+}
