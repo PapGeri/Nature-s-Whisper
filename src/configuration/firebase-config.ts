@@ -1,4 +1,5 @@
-import firebase from 'firebase/app';
+import { FirebaseApp, initializeApp } from 'firebase/app';
+import { Database, getDatabase } from 'firebase/database'
 import 'firebase/auth';
 import 'firebase/database';
 
@@ -13,5 +14,5 @@ const firebaseConfig = {
 	measurementId: 'G-KYFVFTTMEJ'
 };
 
-export const myFirebase = firebase.initializeApp(firebaseConfig);
-export const myDatabase = myFirebase.database();
+export const myFirebase: FirebaseApp = initializeApp(firebaseConfig);
+export const myDatabase: Database = getDatabase(myFirebase);

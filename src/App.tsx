@@ -1,31 +1,35 @@
 import React from 'react';
 import SoundCardContainer from './sound-card-container/SoundCardContainer';
 import { theme } from './configuration/theme-configuration';
-import { SoundConfiguration, sounds } from './configuration/sound-configuration';
+import {
+	SoundConfiguration,
+	sounds,
+} from './configuration/sound-configuration';
 import HeaderBar from './header/HeaderBar';
 import { Typography, ThemeProvider, IconButton } from '@material-ui/core';
 import { PlayArrow } from '@material-ui/icons';
 import PauseIcon from '@material-ui/icons/Pause';
 import './App.scss';
-import { User } from 'firebase';
-import SignInScreen from './SignInScreen';
-import { myDatabase, myFirebase } from './configuration/firebase-config';
+import { User } from 'firebase/auth';
+import SignInScreen from './signin/SignInScreen';
+import { myDatabase } from './configuration/firebase-config';
+import { ref, onValue, set } from 'firebase/database';
+import { getAuth, signOut } from 'firebase/auth';
 
-export interface AppProps {
-}
+export interface AppProps {}
 
 export interface AppStates {
-	isPlayingMaster: boolean,
-	cards: Map<number, StorageState>,
-	snackBarOpen: boolean,
-	isLoginInProgress: boolean,
+	isPlayingMaster: boolean;
+	cards: Map<number, StorageState>;
+	snackBarOpen: boolean;
+	isLoginInProgress: boolean;
 }
 
 export interface StorageState {
-	volume: number,
-	isVisible: boolean,
-	isPlaying: boolean,
-	isToned: boolean,
+	volume: number;
+	isVisible: boolean;
+	isPlaying: boolean;
+	isToned: boolean;
 }
 
 class App extends React.Component<AppProps, AppStates> {
@@ -41,22 +45,28 @@ class App extends React.Component<AppProps, AppStates> {
 	}
 
 	componentDidMount() {
-		myFirebase.auth().onAuthStateChanged((user: User | null) => {
+		getAuth().onAuthStateChanged((user: User | null) => {
 			if (!user) {
 				return;
 			}
-			this.loadCardsFromDatabase(user)
-				.then(() => console.log('Database updated'));
+			this.loadCardsFromDatabase(user).then(() =>
+				console.log('Database updated')
+			);
 		});
 	}
 
 	loadCardsFromDatabase = async (user: User | null) => {
 		let map = new Map<number, StorageState>();
 		const userID: string = (user as User).uid as string;
-		const userRef = myDatabase.ref('/users/' + userID + '/cards/');
-		const snapshot = await userRef.once('value');
+		const userRef = ref(myDatabase, '/users/' + userID + '/cards/');
+		// const snapshot = await userRef.once('value');
 
-		const data = snapshot.val();
+		// const data = snapshot.val();
+		let data: any;
+		onValue(userRef, (snapshot) => {
+			data = snapshot.val();
+		});
+
 		if (!data) {
 			const map = this.initCardMap();
 			this.setState({
@@ -77,43 +87,51 @@ class App extends React.Component<AppProps, AppStates> {
 			cards: map,
 			isLoginInProgress: false,
 		});
-	}
+	};
 
 	handleSignIn = () => {
 		this.setState({
 			isLoginInProgress: true,
 		});
-	}
+	};
 
 	handleLogOut = () => {
-		myFirebase.auth().signOut().then(() => {
+		const auth = getAuth();
+		signOut(auth).then(() => {
 			const map = this.initCardMap();
 			this.setState({
 				cards: map,
 			});
 		});
-	}
+	};
 
 	initCardMap = () => {
 		let map = new Map<number, StorageState>();
-		if (!myFirebase.auth().currentUser && localStorage.getItem('StorageState') !== null) {
+		if (
+			!getAuth().currentUser &&
+			localStorage.getItem('StorageState') !== null
+		) {
 			const value = JSON.parse(localStorage.getItem('StorageState') as string);
 			value.forEach((config: any[]) => {
 				map.set(config[0] as number, {
 					volume: config[1].volume,
 					isVisible: config[1].isVisible,
 					isPlaying: config[1].isPlaying,
-					isToned: config[1].isToned
+					isToned: config[1].isToned,
+				});
+			});
+		} else {
+			sounds.forEach((sound: SoundConfiguration) => {
+				map.set(sound.id, {
+					volume: 50,
+					isVisible: true,
+					isPlaying: false,
+					isToned: false,
 				});
 			});
 		}
-		else {
-			sounds.forEach((sound: SoundConfiguration) => {
-				map.set(sound.id, { volume: 50, isVisible: true, isPlaying: false, isToned: false });
-			});
-		}
 		return map;
-	}
+	};
 
 	setCardMap = (id: number, isVisible: boolean) => {
 		const cardsMap = this.state.cards;
@@ -121,13 +139,13 @@ class App extends React.Component<AppProps, AppStates> {
 		if (cardsMap.has(id)) {
 			newMap = cardsMap.set(id, {
 				...(cardsMap.get(id) as StorageState),
-				isVisible: isVisible
+				isVisible: isVisible,
 			});
 		}
 		this.setState({
 			cards: newMap,
 		});
-	}
+	};
 
 	handleDatabaseSave = () => {
 		this.setState({
@@ -135,16 +153,22 @@ class App extends React.Component<AppProps, AppStates> {
 		});
 		const currentMap = this.state.cards;
 
-		if (!myFirebase.auth().currentUser) {
-			localStorage.setItem('StorageState', JSON.stringify(Array.from(currentMap)));
+		if (!getAuth().currentUser) {
+			localStorage.setItem(
+				'StorageState',
+				JSON.stringify(Array.from(currentMap))
+			);
 			return;
 		}
 
-		const userID: string = (myFirebase.auth().currentUser as User).uid;
-		const databaseRef = myDatabase.ref('/users/' + userID + '/cards/');
+		const userID: string = (getAuth().currentUser as User).uid;
+		// const databaseRef: DatabaseReference = ref(
+		// myDatabase,
+		// '/users/' + userID + '/cards/'
+		// );
 		currentMap.forEach((value: StorageState, key: number | string) => {
-			let userRef = databaseRef.child(key as string);
-			userRef.set({
+			// let userRef = databaseRef.child(key as string);
+			set(ref(myDatabase, '/users/' + userID + '/cards/'), {
 				id: key as number,
 				volume: value.volume as number,
 				isPlaying: value.isPlaying,
@@ -152,13 +176,13 @@ class App extends React.Component<AppProps, AppStates> {
 				isVisible: value.isVisible,
 			});
 		});
-	}
+	};
 
 	handleSnackbarClose = () => {
 		this.setState({
 			snackBarOpen: false,
 		});
-	}
+	};
 
 	handlePlayButton() {
 		this.setState({
@@ -171,39 +195,43 @@ class App extends React.Component<AppProps, AppStates> {
 		let newMap: Map<number, StorageState>;
 		newMap = map.set(id, {
 			...(map.get(id) as StorageState),
-			isPlaying: isPlaying
+			isPlaying: isPlaying,
 		});
 		this.setState({
 			cards: newMap,
 		});
-	}
+	};
 
 	handleIndividualSoundVolume = (id: number, newValue: number | number[]) => {
 		const map = this.state.cards;
 		let newMap: Map<number, StorageState>;
 		newMap = map.set(id, {
 			...(map.get(id) as StorageState),
-			volume: newValue as number
+			volume: newValue as number,
 		});
 		this.setState({
 			cards: newMap,
 		});
-	}
+	};
 
 	handleIndividualSoundToneSwitch = (id: number, isToned: boolean) => {
 		const map = this.state.cards;
 		let newMap: Map<number, StorageState>;
 		newMap = map.set(id, {
 			...(map.get(id) as StorageState),
-			isToned: isToned
+			isToned: isToned,
 		});
 		this.setState({
 			cards: newMap,
 		});
-	}
+	};
 
 	render() {
-		const buttonIcon = this.state.isPlayingMaster ? <PauseIcon/> : <PlayArrow/>;
+		const buttonIcon = this.state.isPlayingMaster ? (
+			<PauseIcon />
+		) : (
+			<PlayArrow />
+		);
 		if (!this.state.isLoginInProgress) {
 			return (
 				<ThemeProvider theme={theme}>
@@ -228,7 +256,8 @@ class App extends React.Component<AppProps, AppStates> {
 								<IconButton
 									className='MasterPlayButton'
 									color='inherit'
-									onClick={() => this.handlePlayButton()}>
+									onClick={() => this.handlePlayButton()}
+								>
 									{buttonIcon}
 								</IconButton>
 							</Typography>
@@ -250,7 +279,7 @@ class App extends React.Component<AppProps, AppStates> {
 		}
 		return (
 			<div className='auth-container'>
-				<SignInScreen/>
+				<SignInScreen />
 			</div>
 		);
 	}

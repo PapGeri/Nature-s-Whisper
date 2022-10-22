@@ -1,23 +1,27 @@
 import React from 'react';
 import SoundCard from './sound-card/SoundCard';
-import { SoundConfiguration, sounds } from '../configuration/sound-configuration';
+import {
+	SoundConfiguration,
+	sounds,
+} from '../configuration/sound-configuration';
 import { Fade, Grid } from '@material-ui/core';
 import './SoundCardContainer.scss';
 import { StorageState } from '../App';
 
 export interface CardContainerProps {
-	isPlayingMaster: boolean,
-	cardsMap: Map<number, StorageState>,
-	onPlayButtonChange: (id: number, isPlaying: boolean) => void,
-	onVolumeChange: (id: number, newValue: number | number[]) => void,
-	onToneSwitchChange: (id: number, isToned: boolean) => void,
+	isPlayingMaster: boolean;
+	cardsMap: Map<number, StorageState>;
+	onPlayButtonChange: (id: number, isPlaying: boolean) => void;
+	onVolumeChange: (id: number, newValue: number | number[]) => void;
+	onToneSwitchChange: (id: number, isToned: boolean) => void;
 }
 
-export interface CardContainerState {
-}
+export interface CardContainerState {}
 
-class SoundCardContainer extends React.Component<CardContainerProps, CardContainerState> {
-
+class SoundCardContainer extends React.Component<
+	CardContainerProps,
+	CardContainerState
+> {
 	createCard(
 		id: number,
 		title: string,
@@ -28,12 +32,8 @@ class SoundCardContainer extends React.Component<CardContainerProps, CardContain
 	) {
 		const currentCard = this.props.cardsMap.get(id) as StorageState;
 		return (
-
 			<div key={id} className='Card'>
-				<Fade
-					in={currentCard.isVisible}
-					unmountOnExit={true}
-				>
+				<Fade in={currentCard.isVisible} unmountOnExit={true}>
 					<Grid item xs>
 						<SoundCard
 							id={id}
@@ -53,12 +53,12 @@ class SoundCardContainer extends React.Component<CardContainerProps, CardContain
 					</Grid>
 				</Fade>
 			</div>
-		)
+		);
 	}
 
 	render() {
 		return (
-			<Grid container alignItems='center' justify='center'>
+			<Grid container alignItems='center' justifyContent='center'>
 				{sounds.map((sound: SoundConfiguration) => {
 					return this.createCard(
 						sound.id,
@@ -66,7 +66,8 @@ class SoundCardContainer extends React.Component<CardContainerProps, CardContain
 						sound.icon,
 						sound.path,
 						this.props.isPlayingMaster,
-						sound.hertzNumber);
+						sound.hertzNumber
+					);
 				})}
 			</Grid>
 		);
