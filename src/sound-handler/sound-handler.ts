@@ -7,7 +7,6 @@ export class SoundHandler {
 
 	//Connecting the nodes together
 	constructor(path: string) {
-		console.log(path);
 		this.audio = new Audio(path);
 		this.audio.loop = true;
 		this.context = new AudioContext();

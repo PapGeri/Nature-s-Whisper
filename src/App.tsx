@@ -13,7 +13,7 @@ import './App.scss';
 import { User } from 'firebase/auth';
 import SignInScreen from './signin/SignInScreen';
 import { myDatabase } from './configuration/firebase-config';
-import { ref, onValue, set } from 'firebase/database';
+import { ref, onValue, set, DataSnapshot } from 'firebase/database';
 import { getAuth, signOut } from 'firebase/auth';
 
 export interface AppProps {}
@@ -59,11 +59,8 @@ class App extends React.Component<AppProps, AppStates> {
 		let map = new Map<number, StorageState>();
 		const userID: string = (user as User).uid as string;
 		const userRef = ref(myDatabase, '/users/' + userID + '/cards/');
-		// const snapshot = await userRef.once('value');
-
-		// const data = snapshot.val();
 		let data: any;
-		onValue(userRef, (snapshot) => {
+		onValue(userRef, (snapshot: DataSnapshot) => {
 			data = snapshot.val();
 		});
 
@@ -75,6 +72,7 @@ class App extends React.Component<AppProps, AppStates> {
 			});
 			return;
 		}
+
 		data.forEach((config: any) => {
 			map.set(config.id as number, {
 				volume: config.volume,
@@ -83,6 +81,7 @@ class App extends React.Component<AppProps, AppStates> {
 				isPlaying: config.isPlaying,
 			});
 		});
+
 		this.setState({
 			cards: map,
 			isLoginInProgress: false,
@@ -162,12 +161,7 @@ class App extends React.Component<AppProps, AppStates> {
 		}
 
 		const userID: string = (getAuth().currentUser as User).uid;
-		// const databaseRef: DatabaseReference = ref(
-		// myDatabase,
-		// '/users/' + userID + '/cards/'
-		// );
 		currentMap.forEach((value: StorageState, key: number | string) => {
-			// let userRef = databaseRef.child(key as string);
 			set(ref(myDatabase, '/users/' + userID + '/cards/'), {
 				id: key as number,
 				volume: value.volume as number,
