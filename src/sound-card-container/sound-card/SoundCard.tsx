@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import {
 	Slider,
@@ -32,62 +32,96 @@ export interface SoundCardProps {
 	onToneSwitchChange: (id: number, isToned: boolean) => void;
 }
 
-export interface SoundCardState {}
+export const SoundCard = (props: SoundCardProps) => {
+	const sound: SoundHandler = useMemo(
+		() => new SoundHandler(props.cardSoundPath),
+		[props.cardSoundPath]
+	);
 
-class SoundCard extends React.Component<SoundCardProps, SoundCardState> {
-	private sound: SoundHandler = new SoundHandler(this.props.cardSoundPath);
-
-	componentDidUpdate() {
-		this.playSound();
-		this.playTonedSound();
-	}
-
-	handleToneSwitch = () => {
-		this.props.onToneSwitchChange(this.props.id, !this.props.isCardToneIsOn);
-	};
-
-	handlePlayButtonClick = () => {
-		this.props.onPlayButtonChange(
-			this.props.id,
-			!this.props.isCardPlayButtonIsOn
-		);
-	};
-
-	handleSliderChange = (event: any, newValue: number | number[]) => {
-		this.props.onVolumeChange(this.props.id, newValue);
-		this.sound.setVolume((newValue as number) / 50);
-	};
-
-	playSound = () => {
+	useEffect(() => {
 		if (
-			this.props.isCardPlayButtonIsOn &&
-			this.props.isMasterPlayButtonOn &&
-			this.props.isVisible
+			props.isCardPlayButtonIsOn &&
+			props.isMasterPlayButtonOn &&
+			props.isVisible
 		) {
-			this.sound.startSound();
+			sound.startSound();
 		} else {
-			this.sound.stopSound();
+			sound.stopSound();
 		}
+
+		if (props.isCardToneIsOn) {
+			sound.activateTone(props.cardHertzValue);
+		} else {
+			sound.deactivateTone();
+		}
+	}, [
+		props.cardHertzValue,
+		props.isCardPlayButtonIsOn,
+		props.isCardToneIsOn,
+		props.isMasterPlayButtonOn,
+		props.isVisible,
+		sound,
+	]);
+
+	const handleToneSwitch = (): void => {
+		props.onToneSwitchChange(props.id, !props.isCardToneIsOn);
 	};
 
-	playTonedSound = () => {
-		if (this.props.isCardToneIsOn) {
-			this.sound.activateTone(this.props.cardHertzValue);
-		} else {
-			this.sound.deactivateTone();
-		}
+	const handlePlayButtonClick = (): void => {
+		props.onPlayButtonChange(props.id, !props.isCardPlayButtonIsOn);
 	};
 
-	render() {
-		const individualPlayButton = this.props.isCardPlayButtonIsOn ? (
-			<PauseIcon />
-		) : (
-			<PlayArrow />
-		);
-		const disablePlayButton = !this.props.isMasterPlayButtonOn;
-		return (
-			<Card>
-				<CardContent>
+	const handleSliderChange = (
+		event: any,
+		newValue: number | number[]
+	): void => {
+		props.onVolumeChange(props.id, newValue);
+		sound.setVolume((newValue as number) / 50);
+	};
+
+	const individualPlayButton: JSX.Element = props.isCardPlayButtonIsOn ? (
+		<PauseIcon />
+	) : (
+		<PlayArrow />
+	);
+
+	const disablePlayButton: boolean = !props.isMasterPlayButtonOn;
+	return (
+		<Card>
+			<CardContent>
+				<Grid container spacing={2} alignItems='center' justifyContent='center'>
+					<Grid item>
+						<Typography variant='h4'>{<props.cardIcon />}</Typography>
+					</Grid>
+					<Grid item xs>
+						<Typography variant='h6'>{props.cardName}</Typography>
+					</Grid>
+					<Grid item xs>
+						<IconButton
+							color='primary'
+							size='small'
+							onClick={handlePlayButtonClick}
+							disabled={disablePlayButton}
+						>
+							{individualPlayButton}
+						</IconButton>
+					</Grid>
+					<Grid item>
+						<FormControlLabel
+							control={
+								<Switch
+									checked={props.isCardToneIsOn}
+									onChange={handleToneSwitch}
+									color='primary'
+									size='small'
+								/>
+							}
+							label='Tone'
+						/>
+					</Grid>
+				</Grid>
+				<Typography>Volume</Typography>
+				<CardActions>
 					<Grid
 						container
 						spacing={2}
@@ -95,65 +129,24 @@ class SoundCard extends React.Component<SoundCardProps, SoundCardState> {
 						justifyContent='center'
 					>
 						<Grid item>
-							<Typography variant='h4'>{<this.props.cardIcon />}</Typography>
+							<VolumeDown />
 						</Grid>
 						<Grid item xs>
-							<Typography variant='h6'>{this.props.cardName}</Typography>
-						</Grid>
-						<Grid item xs>
-							<IconButton
-								color='primary'
-								size='small'
-								onClick={this.handlePlayButtonClick}
-								disabled={disablePlayButton}
-							>
-								{individualPlayButton}
-							</IconButton>
-						</Grid>
-						<Grid item>
-							<FormControlLabel
-								control={
-									<Switch
-										checked={this.props.isCardToneIsOn}
-										onChange={this.handleToneSwitch}
-										color='primary'
-										size='small'
-									/>
-								}
-								label='Tone'
+							<Slider
+								value={props.soundVolume as number}
+								onChange={handleSliderChange}
+								valueLabelDisplay='auto'
+								min={0}
+								max={100}
+								step={1}
 							/>
 						</Grid>
-					</Grid>
-					<Typography>Volume</Typography>
-					<CardActions>
-						<Grid
-							container
-							spacing={2}
-							alignItems='center'
-							justifyContent='center'
-						>
-							<Grid item>
-								<VolumeDown />
-							</Grid>
-							<Grid item xs>
-								<Slider
-									value={this.props.soundVolume as number}
-									onChange={this.handleSliderChange}
-									valueLabelDisplay='auto'
-									min={0}
-									max={100}
-									step={1}
-								/>
-							</Grid>
-							<Grid item>
-								<VolumeUp />
-							</Grid>
+						<Grid item>
+							<VolumeUp />
 						</Grid>
-					</CardActions>
-				</CardContent>
-			</Card>
-		);
-	}
-}
-
-export default SoundCard;
+					</Grid>
+				</CardActions>
+			</CardContent>
+		</Card>
+	);
+};

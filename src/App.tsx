@@ -1,5 +1,5 @@
-import React from 'react';
-import SoundCardContainer from './sound-card-container/SoundCardContainer';
+import React, { useCallback, useEffect, useState } from 'react';
+import { SoundCardContainer } from './sound-card-container/SoundCardContainer';
 import { theme } from './configuration/theme-configuration';
 import {
 	SoundConfiguration,
@@ -11,12 +11,10 @@ import { PlayArrow } from '@material-ui/icons';
 import PauseIcon from '@material-ui/icons/Pause';
 import './App.scss';
 import { User } from 'firebase/auth';
-import SignInScreen from './signin/SignInScreen';
+import { SignInScreen } from './signin/SignInScreen';
 import { myDatabase } from './configuration/firebase-config';
 import { ref, onValue, set, DataSnapshot } from 'firebase/database';
 import { getAuth, signOut } from 'firebase/auth';
-
-export interface AppProps {}
 
 export interface AppStates {
 	isPlayingMaster: boolean;
@@ -32,79 +30,8 @@ export interface StorageState {
 	isToned: boolean;
 }
 
-class App extends React.Component<AppProps, AppStates> {
-	constructor(props: AppProps) {
-		super(props);
-		const cardsMap = this.initCardMap();
-		this.state = {
-			isPlayingMaster: false,
-			cards: cardsMap,
-			snackBarOpen: false,
-			isLoginInProgress: false,
-		};
-	}
-
-	componentDidMount() {
-		getAuth().onAuthStateChanged((user: User | null) => {
-			if (!user) {
-				return;
-			}
-			this.loadCardsFromDatabase(user).then(() =>
-				console.log('Database updated')
-			);
-		});
-	}
-
-	loadCardsFromDatabase = async (user: User | null) => {
-		let map = new Map<number, StorageState>();
-		const userID: string = (user as User).uid as string;
-		const userRef = ref(myDatabase, '/users/' + userID + '/cards/');
-		let data: any;
-		onValue(userRef, (snapshot: DataSnapshot) => {
-			data = snapshot.val();
-		});
-
-		if (!data) {
-			const map = this.initCardMap();
-			this.setState({
-				isLoginInProgress: false,
-				cards: map,
-			});
-			return;
-		}
-
-		data.forEach((config: any) => {
-			map.set(config.id as number, {
-				volume: config.volume,
-				isVisible: config.isVisible,
-				isToned: config.isToned,
-				isPlaying: config.isPlaying,
-			});
-		});
-
-		this.setState({
-			cards: map,
-			isLoginInProgress: false,
-		});
-	};
-
-	handleSignIn = () => {
-		this.setState({
-			isLoginInProgress: true,
-		});
-	};
-
-	handleLogOut = () => {
-		const auth = getAuth();
-		signOut(auth).then(() => {
-			const map = this.initCardMap();
-			this.setState({
-				cards: map,
-			});
-		});
-	};
-
-	initCardMap = () => {
+export const App = () => {
+	const initCardMap = () => {
 		let map = new Map<number, StorageState>();
 		if (
 			!getAuth().currentUser &&
@@ -132,25 +59,74 @@ class App extends React.Component<AppProps, AppStates> {
 		return map;
 	};
 
-	setCardMap = (id: number, isVisible: boolean) => {
-		const cardsMap = this.state.cards;
-		let newMap = new Map<number, StorageState>();
-		if (cardsMap.has(id)) {
-			newMap = cardsMap.set(id, {
-				...(cardsMap.get(id) as StorageState),
-				isVisible: isVisible,
+	const [isPlayingMaster, setIsPlayingMaster] = useState(false);
+	const [cards, setCards] = useState(initCardMap());
+	const [snackBarOpen, setSnackBarOpen] = useState(false);
+	const [isLoginInProgress, setIsLoginInProgress] = useState(false);
+
+	useEffect(() => {
+		console.log('useEffect');
+		getAuth().onAuthStateChanged((user: User | null) => {
+			console.log('user', user);
+			if (!user) {
+				setCards(initCardMap);
+				return;
+			}
+
+			let map = new Map<number, StorageState>();
+			const userID: string = (user as User).uid as string;
+			const userRef = ref(myDatabase, '/users/' + userID + '/cards/');
+			let data: any;
+			onValue(userRef, (snapshot: DataSnapshot) => {
+				data = snapshot.val();
 			});
-		}
-		this.setState({
-			cards: newMap,
+
+			if (!data) {
+				const map = initCardMap();
+				setIsLoginInProgress(false);
+				setCards(map);
+				return;
+			}
+
+			data.forEach((config: any) => {
+				map.set(config.id as number, {
+					volume: config.volume,
+					isVisible: config.isVisible,
+					isToned: config.isToned,
+					isPlaying: config.isPlaying,
+				});
+			});
+
+			setCards(map);
+			setIsLoginInProgress(false);
+		});
+	}, []);
+
+	const handleSignIn = () => {
+		setIsLoginInProgress(true);
+	};
+
+	const handleLogOut = () => {
+		const auth = getAuth();
+		signOut(auth).then(() => {
+			setCards(initCardMap);
 		});
 	};
 
-	handleDatabaseSave = () => {
-		this.setState({
-			snackBarOpen: true,
-		});
-		const currentMap = this.state.cards;
+	const setCardMap = (id: number, isVisible: boolean) => {
+		setCards(
+			new Map(
+				cards.set(id, {
+					...(cards.get(id) as StorageState),
+					isVisible: isVisible,
+				})
+			)
+		);
+	};
+
+	const handleDatabaseSave = () => {
+		setSnackBarOpen(true);
+		const currentMap = cards;
 
 		if (!getAuth().currentUser) {
 			localStorage.setItem(
@@ -172,111 +148,103 @@ class App extends React.Component<AppProps, AppStates> {
 		});
 	};
 
-	handleSnackbarClose = () => {
-		this.setState({
-			snackBarOpen: false,
-		});
+	const handleSnackbarClose = () => {
+		setSnackBarOpen(false);
 	};
 
-	handlePlayButton() {
-		this.setState({
-			isPlayingMaster: !this.state.isPlayingMaster,
-		});
-	}
-
-	handleIndividualSoundPlayButtonClick = (id: number, isPlaying: boolean) => {
-		const map = this.state.cards;
-		let newMap: Map<number, StorageState>;
-		newMap = map.set(id, {
-			...(map.get(id) as StorageState),
-			isPlaying: isPlaying,
-		});
-		this.setState({
-			cards: newMap,
-		});
+	const handlePlayButton = () => {
+		setIsPlayingMaster(!isPlayingMaster);
 	};
 
-	handleIndividualSoundVolume = (id: number, newValue: number | number[]) => {
-		const map = this.state.cards;
-		let newMap: Map<number, StorageState>;
-		newMap = map.set(id, {
-			...(map.get(id) as StorageState),
-			volume: newValue as number,
-		});
-		this.setState({
-			cards: newMap,
-		});
-	};
-
-	handleIndividualSoundToneSwitch = (id: number, isToned: boolean) => {
-		const map = this.state.cards;
-		let newMap: Map<number, StorageState>;
-		newMap = map.set(id, {
-			...(map.get(id) as StorageState),
-			isToned: isToned,
-		});
-		this.setState({
-			cards: newMap,
-		});
-	};
-
-	render() {
-		const buttonIcon = this.state.isPlayingMaster ? (
-			<PauseIcon />
-		) : (
-			<PlayArrow />
+	const handleIndividualSoundPlayButtonClick = (
+		id: number,
+		isPlaying: boolean
+	) => {
+		setCards(
+			new Map(
+				cards.set(id, {
+					...(cards.get(id) as StorageState),
+					isPlaying: isPlaying,
+				})
+			)
 		);
-		if (!this.state.isLoginInProgress) {
-			return (
-				<ThemeProvider theme={theme}>
-					<div className='App'>
-						<HeaderBar
-							cardsMap={this.state.cards}
-							onChange={this.setCardMap}
-							onSaveButtonPressed={this.handleDatabaseSave}
-							onSignOutButtonPressed={this.handleLogOut}
-							onSignInButtonPressed={this.handleSignIn}
-							open={this.state.snackBarOpen}
-							close={this.handleSnackbarClose}
-						/>
-						<header className='Header'>
-							<Typography variant='h1' align='center'>
-								Nature's Whisper
-							</Typography>
-							<Typography variant='h4' align='center'>
-								Ambient sounds to concentrate and to relax
-							</Typography>
-							<Typography variant='h2' align='center'>
-								<IconButton
-									className='MasterPlayButton'
-									color='inherit'
-									onClick={() => this.handlePlayButton()}
-								>
-									{buttonIcon}
-								</IconButton>
-							</Typography>
-						</header>
-						<main>
-							<div>
-								<SoundCardContainer
-									cardsMap={this.state.cards}
-									onPlayButtonChange={this.handleIndividualSoundPlayButtonClick}
-									onVolumeChange={this.handleIndividualSoundVolume}
-									onToneSwitchChange={this.handleIndividualSoundToneSwitch}
-									isPlayingMaster={this.state.isPlayingMaster}
-								/>
-							</div>
-						</main>
-					</div>
-				</ThemeProvider>
-			);
-		}
+	};
+
+	const handleIndividualSoundVolume = (
+		id: number,
+		newValue: number | number[]
+	) => {
+		setCards(
+			new Map(
+				cards.set(id, {
+					...(cards.get(id) as StorageState),
+					volume: newValue as number,
+				})
+			)
+		);
+	};
+
+	const handleIndividualSoundToneSwitch = (id: number, isToned: boolean) => {
+		setCards(
+			new Map(
+				cards.set(id, {
+					...(cards.get(id) as StorageState),
+					isToned: isToned,
+				})
+			)
+		);
+	};
+
+	const buttonIcon = isPlayingMaster ? <PauseIcon /> : <PlayArrow />;
+	if (!isLoginInProgress) {
+		return (
+			<ThemeProvider theme={theme}>
+				<div className='App'>
+					<HeaderBar
+						cardsMap={cards}
+						onChange={setCardMap}
+						onSaveButtonPressed={handleDatabaseSave}
+						onSignOutButtonPressed={handleLogOut}
+						onSignInButtonPressed={handleSignIn}
+						open={snackBarOpen}
+						close={handleSnackbarClose}
+					/>
+					<header className='Header'>
+						<Typography variant='h1' align='center'>
+							Nature's Whisper
+						</Typography>
+						<Typography variant='h4' align='center'>
+							Ambient sounds to concentrate and to relax
+						</Typography>
+						<Typography variant='h2' align='center'>
+							<IconButton
+								className='MasterPlayButton'
+								color='inherit'
+								onClick={handlePlayButton}
+							>
+								{buttonIcon}
+							</IconButton>
+						</Typography>
+					</header>
+					<main>
+						<div>
+							<SoundCardContainer
+								cardsMap={cards}
+								onPlayButtonChange={handleIndividualSoundPlayButtonClick}
+								onVolumeChange={handleIndividualSoundVolume}
+								onToneSwitchChange={handleIndividualSoundToneSwitch}
+								isPlayingMaster={isPlayingMaster}
+							/>
+						</div>
+					</main>
+				</div>
+			</ThemeProvider>
+		);
+	} else {
 		return (
 			<div className='auth-container'>
 				<SignInScreen />
 			</div>
 		);
 	}
-}
-
-export default App;
+};

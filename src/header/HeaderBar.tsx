@@ -7,7 +7,7 @@ import {
 	Toolbar,
 	Typography,
 } from '@material-ui/core';
-import SoundCardHider from '../sound-card-hiding/SoundCardHider';
+import { SoundCardHider } from '../sound-card-hiding/SoundCardHider';
 import SaveIcon from '@material-ui/icons/Save';
 import './HeaderBar.scss';
 import { StorageState } from '../App';

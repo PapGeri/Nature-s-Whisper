@@ -2,15 +2,8 @@ import React from 'react';
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 import { EmailAuthProvider, getAuth } from 'firebase/auth';
 
-export interface SignInScreenProps {}
-
-export interface SignInScreenState {}
-
-class SignInScreen extends React.Component<
-	SignInScreenProps,
-	SignInScreenState
-> {
-	uiConfig = {
+export const SignInScreen = () => {
+	const uiConfig = {
 		signInFlow: 'popup',
 		signInOptions: [EmailAuthProvider.PROVIDER_ID],
 		credentialHelper: 'none',
@@ -19,11 +12,5 @@ class SignInScreen extends React.Component<
 		},
 	};
 
-	render() {
-		return (
-			<StyledFirebaseAuth uiConfig={this.uiConfig} firebaseAuth={getAuth()} />
-		);
-	}
-}
-
-export default SignInScreen;
+	return <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={getAuth()} />;
+};
